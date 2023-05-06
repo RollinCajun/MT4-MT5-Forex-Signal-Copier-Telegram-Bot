@@ -272,7 +272,7 @@ async def ConnectMetaTrader(update: Update, trade: dict, enterTrade: bool):
 
             # enters trade on to MetaTrader account
             update.effective_message.reply_text("Entering trade on MetaTrader Account ... 👨🏾‍💻")
-            if(trade['Symbol'] == 'US30')
+            if(trade['Symbol'] == 'US30'):
                 trade['Symbol'] == 'US30USD'
 
             try:
