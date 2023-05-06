@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 CALCULATE, TRADE, DECISION = range(3)
 
 # allowed FX symbols
-SYMBOLS = ['AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD', 'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD', 'GBPUSD', 'NOW', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD']
+SYMBOLS = ['AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDNZD', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 'EURAUD', 'EURCAD', 'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD', 'GBPUSD', 'NOW', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD', 'USDCAD', 'USDCHF', 'USDJPY', 'XAGUSD', 'XAUUSD', 'US30', 'BTCUSD']
 
 # RISK FACTOR
 RISK_FACTOR = float(os.environ.get("RISK_FACTOR"))
@@ -92,18 +92,26 @@ def ParseSignal(signal: str) -> dict:
     
     # checks wheter or not to convert entry to float because of market exectution option ("NOW")
     if(trade['OrderType'] == 'Buy' or trade['OrderType'] == 'Sell'):
-        trade['Entry'] = (signal[1].split())[-1]
+        trade['Entry'] = (signal[2].split())[-1]
     
     else:
-        trade['Entry'] = float((signal[1].split())[-1])
+        trade['Entry'] = float((signal[2].split())[-1])
     
-    trade['StopLoss'] = float((signal[2].split())[-1])
-    trade['TP'] = [float((signal[3].split())[-1])]
+    trade['StopLoss'] = float((signal[4].split())[-1])
+    trade['TP'] = [float((signal[6].split())[-1])]
 
     # checks if there's a fourth line and parses it for TP2
-    if(len(signal) > 4):
-        trade['TP'].append(float(signal[4].split()[-1]))
-    
+    if(len(signal) > 6):
+        trade['TP'].append(float(signal[7].split()[-1]))
+        
+    # checks if there's a 5th line and parses it for TP2
+    if(len(signal) > 7):
+        trade['TP'].append(float(signal[8].split()[-1]))
+
+    # checks if there's a 6th line and parses it for TP2
+    if(len(signal) > 8):
+        trade['TP'].append(float(signal[9].split()[-1]))
+        
     # adds risk factor to trade
     trade['RiskFactor'] = RISK_FACTOR
 
@@ -124,6 +132,12 @@ def GetTradeInformation(update: Update, trade: dict, balance: float) -> None:
 
     elif(trade['Symbol'] == 'XAGUSD'):
         multiplier = 0.001
+        
+    elif(trade['Symbol'] == 'US30');
+        multiplier = 0.1
+    
+    elif(trade['Symbol'] == 'BTCUSD');
+        multiplier = 0.1
 
     elif(str(trade['Entry']).index('.') >= 2):
         multiplier = 0.01
@@ -135,7 +149,7 @@ def GetTradeInformation(update: Update, trade: dict, balance: float) -> None:
     stopLossPips = abs(round((trade['StopLoss'] - trade['Entry']) / multiplier))
 
     # calculates the position size using stop loss and RISK FACTOR
-    trade['PositionSize'] = math.floor(((balance * trade['RiskFactor']) / stopLossPips) / 10 * 100) / 100
+    trade['PositionSize'] = 0.01 #math.floor(((balance * trade['RiskFactor']) / stopLossPips) / 10 * 100) / 100
 
     # calculates the take profit(s) in pips
     takeProfitPips = []
@@ -258,6 +272,8 @@ async def ConnectMetaTrader(update: Update, trade: dict, enterTrade: bool):
 
             # enters trade on to MetaTrader account
             update.effective_message.reply_text("Entering trade on MetaTrader Account ... 👨🏾‍💻")
+            if(trade['Symbol'] == 'US30')
+                trade['Symbol'] == 'US30USD'
 
             try:
                 # executes buy market execution order
